@@ -123,7 +123,13 @@ class _Classic:
         for c in self._get(f"api/s/{site['key']}/stat/sta"):
             sw = by_mac.get((c.get("sw_mac") or "").lower())
             if c.get("is_wired") and sw and c.get("sw_port"):
-                out.append({"device": me(sw), "port": port(sw, c["sw_port"]), "protocol": "unifi", "remote_port": "",
+                out.append({"device": me(sw), "port": port(sw, c["sw_port"]), "protocol": "unifi", "remote_port": "", "client": True,
+                            "vlan": c.get("vlan"), "remote": {"name": c.get("name") or c.get("hostname") or "", "ip": c.get("ip") or c.get("last_ip") or "",
+                                                              "mac": (c.get("mac") or "").lower()}})
+            ap = by_mac.get((c.get("ap_mac") or "").lower())
+            if not c.get("is_wired") and ap:  # a Wi-Fi client: where is it? at this access point (only for "where is", not a cable)
+                out.append({"device": me(ap), "port": f"Wi-Fi {c.get('essid') or ''}".strip(), "protocol": "unifi", "remote_port": "", "client": True,
+                            "wireless": True, "vlan": c.get("vlan"),
                             "remote": {"name": c.get("name") or c.get("hostname") or "", "ip": c.get("ip") or c.get("last_ip") or "",
                                        "mac": (c.get("mac") or "").lower()}})
         return out
@@ -286,7 +292,12 @@ class Plugin(Base):
         clients, devices, notes = self._read()
         entries = [{"ip": c["ip"], "mac": c["mac"], "hostname": c["name"]} for c in clients if c["ip"]]
         n = self.ctx.discovery.record_neighbours(f"unifi {self.ctx.name}", entries)
-        seen = self.ctx.discovery.record_links(f"unifi {self.ctx.name}", self._links) if self._links or self.auth in ("password", "classic") else None
+        cables = [lk for lk in self._links if not lk.get("wireless")]
+        seen = self.ctx.discovery.record_links(f"unifi {self.ctx.name}", cables) if cables or self.auth in ("password", "classic") else None
+        if hasattr(self.ctx.discovery, "record_macs") and (self._links or self.auth in ("password", "classic")):  # labdex 1.24: where is this MAC
+            self.ctx.discovery.record_macs(f"unifi {self.ctx.name}", [
+                {"switch": lk["device"], "port": lk["port"], "mac": lk["remote"]["mac"], "vlan": lk.get("vlan"), "ip": lk["remote"].get("ip", ""),
+                 "name": lk["remote"].get("name", "")} for lk in self._links if lk.get("client") and lk["remote"].get("mac")])
         match = self.ctx.match_host()
         report = {}
         for d in devices:

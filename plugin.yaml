@@ -2,7 +2,7 @@ id: unifi
 name: UniFi Network
 kind: integration
 tags: [network, discovery, status]
-version: "2.1"
+version: "2.2"
 labdex: ">=1.9,<2"
 provides: [discovery]
 description: "Clients of a UniFi Network controller into Discovery (address, MAC, name), and UniFi devices (switches, access points, gateways) as host status. With a local account it also reads which port each device, client and LLDP neighbour sits on, as suggested cables. Read-only. Signs in with a local account (UniFi OS Server, consoles, the Network application on its own), a console's API key, or a Site Manager key from unifi.ui.com."
