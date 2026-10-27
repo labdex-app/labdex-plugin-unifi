@@ -1,0 +1,39 @@
+id: unifi
+name: UniFi Network
+kind: integration
+tags: [network, discovery, status]
+version: "2.1"
+labdex: ">=1.9,<2"
+provides: [discovery]
+description: "Clients of a UniFi Network controller into Discovery (address, MAC, name), and UniFi devices (switches, access points, gateways) as host status. With a local account it also reads which port each device, client and LLDP neighbour sits on, as suggested cables. Read-only. Signs in with a local account (UniFi OS Server, consoles, the Network application on its own), a console's API key, or a Site Manager key from unifi.ui.com."
+settings:
+  - key: auth
+    label: Sign in with
+    type: select
+    required: true
+    default: apikey
+    options:
+      - {value: password, label: "Local account — UniFi OS Server or console"}
+      - {value: classic, label: "Local account — Network application (8443)"}
+      - {value: apikey, label: "API key — UniFi OS console (Network 9.3+)"}
+      - {value: cloud, label: "Site Manager API key — unifi.ui.com"}
+    help: "A local, view-only account is enough. Accounts with two-factor sign-in don't work here."
+  - {key: url, label: Controller URL, type: string, required: true, when: {auth: [password, classic, apikey]}, placeholder: "https://unifi.lab.example.net:11443",
+     help: "UniFi OS Server: port 11443. Consoles (UDM, UCG, Cloud Key): port 443. Network application on its own: port 8443."}
+  - {key: username, label: Username, type: string, required: true, when: {auth: [password, classic]},
+     help: "UniFi OS: Admins & Users → add an admin, “Restrict to local access only”, role View Only for Network"}
+  - {key: password, label: Password, type: secret, required: true, when: {auth: [password, classic]}}
+  - {key: api_key, label: API key, type: secret, required: true, when: {auth: [apikey, cloud]},
+     help: "Console: Network → Settings → Control Plane → Integrations. Site Manager: unifi.ui.com → API → Create API key."}
+  - {key: consoles, label: Consoles, type: list, when: {auth: cloud}, help: "Names or IDs of the consoles to read; empty = every console the key sees"}
+  - {key: cloud_url, label: Site Manager URL, type: string, default: "https://api.ui.com", when: {auth: cloud}, help: "Leave as it is"}
+  - {key: verify_tls, label: Check the TLS certificate, type: bool, default: false, when: {auth: [password, classic, apikey]},
+     help: "UniFi uses a self-signed certificate unless you replaced it. Site Manager is always checked."}
+  - {key: sites, label: Sites, type: list, help: "Names of the sites to read; empty = all"}
+  - {key: path_prefix, label: API path, type: string, default: "proxy/network/integration/v1", when: {auth: apikey},
+     help: "Console: proxy/network/integration/v1. Network application on its own: integration/v1"}
+actions:
+  - {id: test, label: Check connection, mode: run}
+  - {id: poll, label: Read clients and devices, mode: run, schedulable: true, schedule_default: 10}
+widgets:
+  - {id: devices, label: UniFi devices, where: dashboard}
