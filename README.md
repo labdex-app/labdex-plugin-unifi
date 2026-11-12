@@ -1,5 +1,7 @@
 # UniFi Network
 
+[![Release](https://github.com/labdex-app/labdex-plugin-unifi/actions/workflows/release.yml/badge.svg)](https://github.com/labdex-app/labdex-plugin-unifi/actions/workflows/release.yml) [![Buy Me a Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-bitsandbricks-7c3aed?logo=buymeacoffee&logoColor=white&labelColor=181b20)](https://buymeacoffee.com/bitsandbricks)
+
 A [labdex](https://github.com/labdex-app/labdex) plugin. Clients of a UniFi Network controller into Discovery (address, MAC, name), and UniFi devices (switches, access points, gateways) as host status. With a local account it also reads which port each device, client and LLDP neighbour sits on, as suggested cables. Read-only. Signs in with a local account (UniFi OS Server, consoles, the Network application on its own), a console's API key, or a Site Manager key from unifi.ui.com.
 
 **Version** 2.1 · **Works with** labdex >=1.9,<2 · **Plugin id** `unifi`
